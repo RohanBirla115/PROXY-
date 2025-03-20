@@ -1,0 +1,45 @@
+from flask import Flask, request, Response
+import requests
+import os
+import hashlib
+
+app = Flask(__name__)
+CACHE_DIR = "cache"
+
+# Ensure cache directory exists
+if not os.path.exists(CACHE_DIR):
+    os.makedirs(CACHE_DIR)
+
+def get_cache_path(url):
+    """Generate a unique cache file path based on the URL."""
+    return os.path.join(CACHE_DIR, hashlib.md5(url.encode()).hexdigest() + ".html")
+
+@app.route('/proxy')
+def proxy():
+    url = request.args.get('url')
+    if not url:
+        return "Missing URL", 400
+
+    cache_path = get_cache_path(url)
+
+    # Serve from cache if available
+    if os.path.exists(cache_path):
+        with open(cache_path, "rb") as f:
+            return Response(f.read(), content_type="text/html")
+
+    try:
+        # Fetch from the internet if not cached
+        response = requests.get(url)
+        content = response.content
+
+        # Save to cache
+        with open(cache_path, "wb") as f:
+            f.write(content)
+
+        return Response(content, status=response.status_code, content_type=response.headers.get('Content-Type'))
+
+    except Exception as e:
+        return str(e), 500
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000, debug=True)

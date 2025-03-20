@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Web Proxy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Persistent Web Proxy</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL (e.g., https://example.com)">
+    <button onclick="loadPage()">Go</button>
+    <iframe id="proxyFrame"></iframe>
+
+    <script>
+        // Load last visited page from localStorage
+        window.onload = function() {
+            let savedUrl = localStorage.getItem("lastUrl");
+            if (savedUrl) {
+                document.getElementById("urlInput").value = savedUrl;
+                document.getElementById("proxyFrame").src = "/proxy?url=" + encodeURIComponent(savedUrl);
+            }
+        };
+
+        function loadPage() {
+            let url = document.getElementById("urlInput").value;
+            if (!url.startsWith("http")) {
+                alert("Please enter a valid URL starting with http or https.");
+                return;
+            }
+            // Save URL for persistence
+            localStorage.setItem("lastUrl", url);
+            document.getElementById("proxyFrame").src = "/proxy?url=" + encodeURIComponent(url);
+        }
+    </script>
+</body>
+</html>
